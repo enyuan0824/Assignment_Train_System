@@ -76,13 +76,19 @@ public:
                             "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
 							"TRAIN_ID INTEGER,"
 							"STATUS TEXT NOT NULL,"
-                          	"PRICE INTEGER NOT NULL);";					
+                          	"PRICE INTEGER NOT NULL);";	
+		const char* maintain = "CREATE TABLE MAINTAIN ("
+                            "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+							"TRAIN_ID INTEGER,"
+							"REASON TEXT NOT NULL,"
+                          	"DATE TEXT NOT NULL);";			
         executeQuery(create_staff);
         executeQuery(create_signin);
 		executeQuery(train);
 		executeQuery(incident);
 		executeQuery(train_status);
 		executeQuery(ticket);
+		executeQuery(maintain);
     }
 
 	void open_and_create(){
@@ -121,7 +127,13 @@ public:
 	}
 
 	void insert_ticket(int id){
-		string insertQuery = "INSERT INTO TICKET (TRAIN_ID,STATUS, PRICE) VALUES (SELECT TRAIN_ID FROM TRAIN WHERE TRAIN_ID = " + to_string(id) + "),'Booking', 10);";
+		string insertQuery = "INSERT INTO TICKET (TRAIN_ID,STATUS, PRICE) VALUES ( " + to_string(id) + ",'Booking', 10);";
+        executeQuery(insertQuery.c_str());
+	}
+	
+	void insert_maintain(int id,const string& reason, const string& date){
+		string insertQuery = "INSERT INTO MAINTAIN (TRAIN_ID,REASON, DATE) VALUES ( " + to_string(id) + ",'" +
+                                  reason + "', '" + date + "');";
         executeQuery(insertQuery.c_str());
 	}
 	
@@ -264,6 +276,11 @@ public:
         executeQuery(selectQuery);
 	}
 
+	void read_maintain(){
+		const char* selectQuery = "SELECT * FROM MAINTAIN;";
+        executeQuery(selectQuery);
+	}
+
 private:
     void executeQuery(const char* query) {
         // Execute the SQL query
@@ -338,10 +355,11 @@ class train_detail{
     database train;
     
 	public:
-		int id_b,id_c;
+		int id_b,id_c,id_m;
 		int id1,id2;
-		string reason,date,time,a;
+		string date,time,a;
 		char name[100];
+		char reason[100];
 		char dp[100];
 		string new_value;
 
@@ -358,9 +376,12 @@ class train_detail{
 		{
 			cout << "\n--Add New Train--\n";
 			cout << "Train Name: ";
-			cin >> name;
+			cin.clear();
+			cin.ignore();
+			cin.getline(name,100);
 			cout << "Destination point: ";
-			cin >> dp;
+			cin.clear();
+			cin.getline(dp,100);
 			cout << "--Date of travel--\nDay: ";
 			cin >> d1;
 			cout << "Month: ";
@@ -467,25 +488,37 @@ class train_detail{
 		}
 		void add_new_maintain_train()
 		{
-			cout << "\n--Add New Maintain Train--\nTrain ID: ";
-			cin >> id2;
-			cout << "Reason: ";
-			cin.clear();
-			cin.ignore();
-			getline(cin,reason);
-			cout << "--Date of Maintain--\n";
-			cout << "Day: ";
-			cin >> d2;
-			cout << "Month: ";
-			cin >> m2;
-			cout << "Year: ";
-			cin >> y2;
+			while (true) {
+			cout << "Enter train ID you need to maintain : ";
+			if (cin >> id_m) {
+				// Check if the entered train ID is valid
+				if (train.check_train(id_m)) {
+						cout << "\n--- Add New Maintain Train ---\n";
+						cout << "Reason: ";
+						cin.clear();
+						cin.ignore();
+						cin.getline(reason,100);
+						cout << "--Date of Maintain--\n";
+						cout << "Day: ";
+						cin >> d2;
+						cout << "Month: ";
+						cin >> m2;
+						cout << "Year: ";
+						cin >> y2;
+
+						date=to_string(d2)+"-"+to_string(m2)+"-"+to_string(y2);
+
+						train.insert_maintain(id_m,reason,date);
+						break;// Valid train ID, exit the loop
+					} else {
+						cout << "Invalid train ID. Please enter a valid number." << endl;
+					}
+				}
+			}
 		}
 		void display_maintain_record()
 		{
-			cout << "\n|Train ID" << "\t" << "|Train Name" << "\t" << "|Day" << "-" << "Month" << "-" << "Year" << "\n";
-
-			cout << "|" << id2 << "\t\t" << "|" << reason << "\t" << "|" << d2 << "-" << m2 << "-" << y2 << "\n";
+			train.read_maintain();
 		}
 };
 class crew_details {
@@ -597,31 +630,42 @@ class train_status{
 
 		void get_train_status_details(){
 			cout<<"\n --- Train Status --- \nTrain ID : ";
-			cin>>id;
-			do{
-				cout<<"\n1. Train Arrive\n2. Train Departure\n3. Train Delay\nSelect train status : ";
-				cin>>st;
-				switch (st){
-				case 1 :
-				status="Arrive";
-				break;
-				case 2 :
-				status="Departure";
-				break;
-				case 3 :
-				status="Delay";
-				break;
-				default :
-				cout<<"Please enter valid number.\n";
-				break;}
-			}while(st>4);
-			cout<<"\n--- Entre train "<<status<<" time ---\n";
-			cout<<"Time (Hour) : ";
-			cin>>h;
-			cout<<"Time (Minute) : ";
-			cin>>m;
-			time =  to_string(h) + "." + to_string(m);
-			dt_train_status.insert_train_status(status,time,id);
+			while (true) {
+			cout << "Enter train ID you need to booking : ";
+			if (cin >> id) {
+				// Check if the entered train ID is valid
+				if (dt_train_status.check_train(id)) {
+						do{
+							cout<<"\n1. Train Arrive\n2. Train Departure\n3. Train Delay\nSelect train status : ";
+							cin>>st;
+							switch (st){
+							case 1 :
+							status="Arrive";
+							break;
+							case 2 :
+							status="Departure";
+							break;
+							case 3 :
+							status="Delay";
+							break;
+							default :
+							cout<<"Please enter valid number.\n";
+							break;}
+						}while(st>4);
+						cout<<"\n--- Entre train "<<status<<" time ---\n";
+						cout<<"Time (Hour) : ";
+						cin>>h;
+						cout<<"Time (Minute) : ";
+						cin>>m;
+						time =  to_string(h) + "." + to_string(m);
+						dt_train_status.insert_train_status(status,time,id);
+						break;// Valid train ID, exit the loop
+					} else {
+						cout << "Invalid train ID. Please enter a valid number." << endl;
+					}
+				}
+			}
+			
 		}
 		void display_train_status() {
 			dt_train_status.read_train_status();
@@ -632,7 +676,9 @@ class incident_record{
 	database incident;
 	public:
 		int id;
-		string reason,name,date;
+		string date;
+		char reason[100];
+		char name[100];
 		int d,m,y;
 
 		incident_record() : incident("Train_Management.db") 
@@ -642,28 +688,22 @@ class incident_record{
 		}
 
 		void add_incident_record(){
-			cout<<"\n--Add New Incident Record--\nTrain ID : ";
+			cout<<"\n--- Add New Incident Record ---\nTrain ID : ";
 			cin>>id;
 			cout << "Train Name: ";
 			cin.clear();
 			cin.ignore();
-			getline(cin,name);
+			cin.getline(name,100);
 			cout << "Reason: ";
 			cin.clear();
-			cin.ignore();
-			getline(cin,reason);
-			cout << "--Date of incident occur--\nDay: ";
-			cin.clear();
-			cin.ignore();
+			cin.getline(reason,100);
+			cout << "--- Date of incident occur ---\nDay: ";
 			cin >> d;
 			cout << "Month: ";
-			cin.clear();
-			cin.ignore();
 			cin >> m;
 			cout << "Year: ";
-			cin.clear();
-			cin.ignore();
 			cin >> y;
+
 			date = to_string(d) + "-" + to_string(m) + "-" + to_string(y);
 
 			incident.insert_incident(name, reason,date);
@@ -702,7 +742,9 @@ class feeback{
 			cout<<"\n--- Add New Feeback ---\nTrain id : ";
 			cin>>id;
 			cout<<"Add new notice : ";
-			cin>>notice;
+			cin.clear();
+			cin.ignore();
+			cin.getline(notice,100);
 		}
 
 		void display_feeback(){
@@ -723,13 +765,19 @@ class passenger
         {
             cout << "\n--- Passenger --\n";
 			cout << "Passenger Name:";
-            cin >> name;
+			cin.clear();
+			cin.ignore();
+			cin.getline(name,100);
             cout << "Passenger Age:";
             cin >> age;
             cout << "Passenger Contact Number:";
-            cin >> contact_number;
+            cin.clear();
+			cin.ignore();
+			cin.getline(contact_number,100);
             cout << "Passenger Gender:";
-            cin >> gender;
+            cin.clear();
+			cin.ignore();
+			cin.getline(gender,100);
         }
          
         void displaypassenger()
@@ -753,11 +801,17 @@ class lost_and_found
 			cout << "Train ID:";
             cin >> train_id;
             cout << "Item Name:";
-            cin >> item_name;
+			cin.clear();
+			cin.ignore();
+			cin.getline(item_name,100);
             cout << "Item detials:";
-            cin >> item_detials;
+            cin.clear();
+			cin.ignore();
+			cin.getline(item_detials,100);
             cout << "Passenger Email:";
-            cin >> passenger_email;
+            cin.clear();
+			cin.ignore();
+			cin.getline(passenger_email,100);
         }
 
         void displaylost_and_found()
@@ -787,7 +841,7 @@ int main(){
 	database dt("Train_Management.db");
 	dt.open_and_create();
     int code;
-    cout << "----- RAILWAY RESERVATION SYSTEM ----- \n";
+    cout << "\n----- RAILWAY RESERVATION SYSTEM ----- \n";
 	do{
         cout << "\n MAIN MENU \n";
 		cout << "1.Admin\n2.User\n3.Exit \n";
@@ -859,12 +913,9 @@ void admin(){
 		}while(code<6);
 	}
 }
-
-////////////////////////
 void select_train_status(){
 	train_detail b;
 	train_status a;
-/////////////////////////////////////////
 	int code;
 	char y;
 	do{
@@ -881,7 +932,7 @@ void select_train_status(){
 			a.display_train_status();
 			break;;
 		}
-	}while (code<2);
+	}while (code<3);
 }
 void select_train_detail(){
 	fstream f;
@@ -906,26 +957,20 @@ void select_train_detail(){
 					a.display_train_detail();
 				break;
 			case 3:
+					a.display_train_detail();
 					a.update_train_details();
 				break;
 			case 4 :
-				f.open("train_maintenance.txt",ios::out|ios::app|ios::ate);
 				do
 				{
+					a.display_train_detail();
 					a.add_new_maintain_train();
-					f.write((char *) & a,sizeof(a));
-					cout << "\nDo you want to continue add more train details (Y/N): \n";
+					cout << "\nDo you want to continue add more train maintain (Y/N): \n";
 					cin >> y;
 				}while(y=='y' || y =='Y');
-				f.close();
 				break;
 			case 5:
-				f.open("train_maintenance.txt",ios::in);
-				while(f.read((char *) & a,sizeof(a)))
-				{
 					a.display_maintain_record();
-				}
-				f.close();
 				break;
 		}
 	}while (code<6);
@@ -1062,8 +1107,6 @@ void login()
 {
 	const char* dbName = "Train_Management.db";
     database dbManager(dbName);
-	//Create table if not exists
-	dbManager;
 
 	while (true) {
 		string code;
@@ -1166,7 +1209,7 @@ void select_feeback(){
 			}while(y=='y' || y =='Y');
 			f.close();
 		
-	}while(code<2);
+	}while(code<1);
 }
 void select_lost_and_found(){
 	fstream f;
