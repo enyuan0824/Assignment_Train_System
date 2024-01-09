@@ -1,12 +1,9 @@
 #include<iostream>
-#include <cstdlib>
 #include <fstream>
-#include<vector>
 #include<string.h>
 #include<iomanip>
 #include "sqlite3.h"
 #include<algorithm>
-#include <limits>
 
 using namespace std;
 using std::setw;
@@ -350,6 +347,156 @@ bool login(const string& username, const string& password) {
     return false; // Login failed
 }
 
+class feedback_node {
+public:
+    int id;
+    string notice;
+    feedback_node* next;
+
+    feedback_node(int _id, const string& _notice) : id(_id), notice(_notice), next(nullptr) {}
+};
+class passenger_node {
+public:
+    string name;
+    int age;
+    string gender;
+	int contact_number;
+    passenger_node* next;
+
+    passenger_node(const string& _name, int _age, const string& _gender,int _contact_number): name(_name), age(_age), gender(_gender),contact_number(_contact_number), next(nullptr) {}
+};
+class lost_and_found_node {
+public:
+    string item_name;
+    int id;
+    string details;
+	string email;
+    lost_and_found_node* next;
+
+    lost_and_found_node(const string& _item_name, int _id, const string& _details,const string& _email): item_name(_item_name), id(_id), details(_details),email(_email), next(nullptr) {}
+};
+
+class linkedlist_feedback {
+private:
+    feedback_node* head;
+
+public:
+    linkedlist_feedback() : head(nullptr) {}
+
+    void pushBack(int id, const string& notice) {
+        feedback_node* newNode = new feedback_node(id, notice);
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            feedback_node* temp = head;
+            while (temp->next != nullptr) {
+                temp = temp->next;
+            }
+            temp->next = newNode;
+        }
+    }
+	string display() const {
+        string result;
+        feedback_node* temp = head;
+        while (temp != nullptr) {
+            result += "ID: " + to_string(temp->id) + ", Notice: " + temp->notice +"\n";
+            temp = temp->next;
+        }
+        result+="\n--- Display End ---";
+        return result;
+    }
+
+    ~linkedlist_feedback() {
+        feedback_node* temp = head;
+        feedback_node* nextNode;
+        while (temp != nullptr) {
+            nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+    }
+};
+class linkedlist_passenger {
+private:
+    passenger_node* head;
+
+public:
+    linkedlist_passenger() : head(nullptr) {}
+
+    void pushBack(const string& name, int age, const string& gender,int contact_number) {
+        passenger_node* newNode = new passenger_node(name,age,gender,contact_number);
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            passenger_node* temp = head;
+            while (temp->next != nullptr) {
+                temp = temp->next;
+            }
+            temp->next = newNode;
+        }
+    }
+	string display() const {
+        string result;
+        passenger_node* temp = head;
+        while (temp != nullptr) {
+            result += "Name : " + temp->name +"\nAge : " + to_string(temp->age) +"\nGender : " + temp->gender + "\nContact NUmber : " + to_string(temp->contact_number)+"\n";
+            temp = temp->next;
+        }
+        result+="\n--- Display End ---";
+        return result;
+    }
+
+    ~linkedlist_passenger() {
+        passenger_node* temp = head;
+        passenger_node* nextNode;
+        while (temp != nullptr) {
+            nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+    }
+};
+class linkedlist_lost_and_found {
+private:
+    lost_and_found_node* head;
+
+public:
+    linkedlist_lost_and_found() : head(nullptr) {}
+
+    void pushBack(const string& item_name, int id, const string& details,const string& email) {
+        lost_and_found_node* newNode = new lost_and_found_node(item_name,id,details,email);
+        if (head == nullptr) {
+            head = newNode;
+        } else {
+            lost_and_found_node* temp = head;
+            while (temp->next != nullptr) {
+                temp = temp->next;
+            }
+            temp->next = newNode;
+        }
+    }
+	string display() const {
+        string result;
+        lost_and_found_node* temp = head;
+        while (temp != nullptr) {
+            result +="Item name : " + temp->item_name +"\nTrain id : "+ to_string(temp->id) +"\nItem details : " + temp->details + "\nEmail : " + temp->email+"\n";
+            temp = temp->next;
+        }
+        result+="\n--- Display End ---";
+        return result;
+    }
+
+    ~linkedlist_lost_and_found() {
+        lost_and_found_node* temp = head;
+        lost_and_found_node* nextNode;
+        while (temp != nullptr) {
+            nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+    }
+};
+
 class train_detail{
 	private:
     database train;
@@ -629,7 +776,7 @@ class train_status{
 		}
 
 		void get_train_status_details(){
-			cout<<"\n --- Train Status --- \nTrain ID : ";
+			cout<<"\n --- Train Status --- \n";
 			while (true) {
 			cout << "Enter train ID you need to booking : ";
 			if (cin >> id) {
@@ -733,33 +880,34 @@ class payment{
 		cout<< "Amount : RM 10\n";
 	}
 };
-class feeback{
+class feedback{
 	public:
+		linkedlist_feedback a;
 		int id;
-		char notice[100];
+		string notice;
 
 		void write_new_feeback(){
-			cout<<"\n--- Add New Feeback ---\nTrain id : ";
+			cout<<"\nTrain id : ";
+			cin.clear();
 			cin>>id;
 			cout<<"Add new notice : ";
 			cin.clear();
 			cin.ignore();
-			cin.getline(notice,100);
+			getline(cin,notice);
+			a.pushBack(id,notice);
 		}
-
-		void display_feeback(){
-			cout<<"\n|Train ID\t|Notice";
-
-			cout<<"\n"<<id<<"\t\t"<<notice;
+		string display_feeback() const{
+			return a.display();
 		}
 };
 class passenger
 {
     public:
+		linkedlist_passenger a;
         int age;
-        char name[100];
-        char contact_number[100];
-        char gender[100];
+        string name;
+        int contact_number;
+        string gender;
 
         void getpassenger()
         {
@@ -767,66 +915,59 @@ class passenger
 			cout << "Passenger Name:";
 			cin.clear();
 			cin.ignore();
-			cin.getline(name,100);
+			getline(cin,name);
             cout << "Passenger Age:";
             cin >> age;
             cout << "Passenger Contact Number:";
-            cin.clear();
-			cin.ignore();
-			cin.getline(contact_number,100);
+			cin>>contact_number;
             cout << "Passenger Gender:";
             cin.clear();
 			cin.ignore();
-			cin.getline(gender,100);
+			getline(cin,gender);
+			a.pushBack(name,age,gender,contact_number);
         }
-         
-        void displaypassenger()
-        {
-			cout<<"\n|Passenger Name"<<setw(15)<<"|Age"<<setw(15)<<"|Contact Number"<<setw(15)<<"|Gender\n";
-			cout<<"|"<<name<<setw(15)<<age<<setw(15)<<contact_number<<setw(15)<<gender<<"\n";
+        string displaypassenger()const{
+			return a.display();
         }
 
 };
 class lost_and_found
 {
     public:
+		linkedlist_lost_and_found a;
         int train_id;
-        char item_name[100];
-        char item_detials[100];
-        char passenger_email[100];
+        string item_name;
+        string item_detials;
+        string passenger_email;
 
         void getlost_and_found()
         {
-            cout << "\n-- Lost and found --\n";
 			cout << "Train ID:";
             cin >> train_id;
             cout << "Item Name:";
 			cin.clear();
 			cin.ignore();
-			cin.getline(item_name,100);
+			getline(cin,item_name);
             cout << "Item detials:";
             cin.clear();
 			cin.ignore();
-			cin.getline(item_detials,100);
+			getline(cin,item_detials);
             cout << "Passenger Email:";
             cin.clear();
 			cin.ignore();
-			cin.getline(passenger_email,100);
+			getline(cin,passenger_email);
+			a.pushBack(item_name,train_id,item_detials,passenger_email);
         }
-
-        void displaylost_and_found()
-        {
-            cout<<"\n|Item Name\t |Train ID\t |Item details \t |Passenger Email\n";
-			cout<<"|"<<item_name<<"\t"<<train_id<<"\t"<<train_id<<"\t"<<passenger_email<<"\n";
+        string displaylost_and_found()const{
+            return a.display();
         }
 };
 
 void customer();
 void login();
-//void booking_train();
-void select_feeback();
-void select_lost_and_found();
-void entre_new_profile();
+void select_feeback(feedback& a);
+void select_lost_and_found(lost_and_found& a);
+void entre_new_profile(passenger& a);
 void cancel();
 
 void admin();
@@ -835,7 +976,7 @@ void select_train_detail();
 void add_crew_details();
 void select_incident();
 void sign_in_details();
-void user_details();
+void user_details(feedback& a, passenger& b, lost_and_found& c);
 
 int main(){
 	database dt("Train_Management.db");
@@ -864,13 +1005,15 @@ int main(){
 }
 
 void admin(){
+	passenger b;
+    lost_and_found c;
+    feedback a;
+
     char password[10];
 	char pass[50] = "admin123";
 	cout << "\nEnter the Admin Password: ";
 	cin >> password;
-
 	fstream f;
-
 	int code;
 	if(strcmp(pass,password)!=0)
 	{
@@ -907,7 +1050,7 @@ void admin(){
 					add_crew_details();
 					break;
 				case 5:
-					user_details();
+					user_details(a,b,c);
 					break;
 			}
 		}while(code<6);
@@ -998,6 +1141,7 @@ void add_crew_details(){
 				a.display_crew_details();
 				break;
 			case 3:
+				a.display_crew_details();
 				a.update_crew_details();
 				break;
 			case 4:
@@ -1049,12 +1193,10 @@ void sign_in_details() {
         cerr << "Error opening sign_in.txt for reading." << endl;
     }
 }
-void user_details(){
+void user_details(feedback& a, passenger& b, lost_and_found& c){
 	train_detail t;
 	fstream f;
-	feeback a;
-	passenger b;
-	lost_and_found c;
+
 	int code;
 	do{
 		cout << "\n --- User --- \n";
@@ -1070,34 +1212,19 @@ void user_details(){
 		switch(code)
 		{
 			case 1:
-				f.open("profile.txt",ios::in);
-				while(f.read((char *) & a,sizeof(a)))
-				{
-					b.displaypassenger();
-				}
-				f.close();
+					cout<<b.displaypassenger();
 				break;
 			case 2:
-				f.open("feeback.txt",ios::in);
-				while(f.read((char *) & a,sizeof(a)))
-				{
-					a.display_feeback();
-				}
-				f.close();
+					cout<<a.display_feeback();
 				break;
 			case 3:
-				f.open("lost_and_found.txt",ios::in);
-				while(f.read((char *) & a,sizeof(a)))
-				{
-					c.displaylost_and_found();
-				}
-				f.close();
+					cout<<c.displaylost_and_found();
 				break;
 			case 4:
-				t.display_all_ticket();
+					t.display_all_ticket();
 				break;
 			case 5:
-				sign_in_details();
+					sign_in_details();
 				break;
 		}
 	}while(code<6);
@@ -1161,6 +1288,9 @@ void customer(){
 	int code;
 	train_detail a;
 	payment b;
+	feedback c;
+	passenger d;
+	lost_and_found e;
 	do{
 	cout<<"\n--- Customer ---\n1. Booking Train\n2. FeedBack\n3. Lost and found\n4. Profile\n5. Ticket\n6. Cancel train booking\n7. Exit\nPlease choose the code : ";
 	cin>>code;
@@ -1172,13 +1302,13 @@ void customer(){
 			b.disply_resit();
 		break;
 		case 2:
-			select_feeback();
+			select_feeback(c);
 		break;
 		case 3:
-			select_lost_and_found();
+			select_lost_and_found(e);
 		break;
 		case 4:
-			entre_new_profile();
+			entre_new_profile(d);
 		break;
 		case 5:
 			a.display_ticket();
@@ -1190,62 +1320,43 @@ void customer(){
 	}while (code<7);
 }
 
-void select_feeback(){
-	fstream f;
-	feeback a;
+void select_feeback(feedback& a){
 	int code;
 
-	do{
-		cout<<"\n--- Add FeeBack ---\n1. Add new feedback\n2. Back to customer page\nPlease select the code:";
-		cin>>code;
-		char y;
-			f.open("feeback.txt",ios::out|ios::app|ios::ate);
-			do
-			{
-				a.write_new_feeback();
-				f.write((char *) & a,sizeof(a));
-				cout << "\nDo you want to continue add train incident record (Y/N): \n";
-				cin >> y;
-			}while(y=='y' || y =='Y');
-			f.close();
-		
-	}while(code<1);
-}
-void select_lost_and_found(){
-	fstream f;
-	lost_and_found a;
-
+	cout<<"\n--- Add Feedback ---\n";
+	cin>>code;
 	char y;
-	cout<<"\n--- Lost and Found ---\n\n---- Entre a new item details ----\n";
-	f.open("lost_and_found.txt",ios::out|ios::app|ios::ate);
+	do
+	{
+		a.write_new_feeback();
+		cout << "\nDo you want to continue add train incident record (Y/N): \n";
+		cin >> y;
+	}while(y=='y' || y =='Y');
+}
+void select_lost_and_found(lost_and_found& a){
+	char y;
+	cout<<"\n--- Lost and Found ---\n---- Entre a new item details ----\n";
 	do
 	{
 		a.getlost_and_found();
-		f.write((char *) & a,sizeof(a));
 		cout << "\nDo you want to continue add more train status (Y/N): \n";
 		cin >> y;
 	}while(y=='y' || y =='Y');
-	f.close();
 }
-void entre_new_profile(){
-	passenger a;
-	fstream f;
-
+void entre_new_profile(passenger& a){
 	char y;
 	cout<<"\n--- Profile ---\n";
-	f.open("profile.txt",ios::out|ios::app|ios::ate);
 	do
 	{
-		a.getpassenger();
-		f.write((char *) & a,sizeof(a));
+		a.getpassenger();;
 		cout << "\nDo you want to continue add more train status (Y/N): \n";
 		cin >> y;
 	}while(y=='y' || y =='Y');
-	f.close();
 }
 void cancel(){
 	train_detail a;
 	a.display_ticket();
 	a.cancel_train_seat();
+	cout<<"\n--- Cancel ticket ---\n";
 	a.display_cancel_ticket();
 }
